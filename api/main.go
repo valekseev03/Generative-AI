@@ -9,8 +9,8 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-func openAPIKeyFile() string {
-	code, err := os.ReadFile("ChatGPTAPIKey.txt")
+func getKeyFromFile(fileName string) string {
+	code, err := os.ReadFile(fileName)
 	if err != nil {
 		panic(err)
 	}
@@ -20,12 +20,7 @@ func openAPIKeyFile() string {
 	return apiKey
 }
 
-func main() {
-	//Get API Key from ChatGPTAPIKey.txt
-	key := openAPIKeyFile()
-	//fmt.Println("[" + key + "]")
-
-	//Call ChatGPT API
+func callChatGPT(key string, message string) string {
 	client := openai.NewClient(key)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -34,16 +29,25 @@ func main() {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
+					Content: message,
 				},
 			},
 		},
 	)
 
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
-		return
+		return err.Error()
 	}
 
-	fmt.Println(resp.Choices[0].Message.Content)
+	return resp.Choices[0].Message.Content
+}
+
+func main() {
+	//Get API Key from ChatGPTAPIKey.txt
+	key := getKeyFromFile("ChatGPTAPIKey.txt")
+	//fmt.Println("[" + key + "]")
+
+	//Call ChatGPT API
+	outputMessage := callChatGPT(key, "Write a paragraph describing how ChatGPT works.")
+	fmt.Println(outputMessage)
 }
